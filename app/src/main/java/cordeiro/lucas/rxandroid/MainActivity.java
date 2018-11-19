@@ -13,6 +13,8 @@ import cordeiro.lucas.rxandroid.model.Pessoa;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -64,31 +66,49 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+
     private void leituraUmaPessoa(){
-        Pessoa pessoa = new Pessoa("Lucas");
-        Observable<Pessoa> observable = Observable.just(pessoa);
-        Observer<Pessoa> observer = definirObserver();
-        observable.subscribe(observer);
+        Pessoa pessoa = new Pessoa(0,"Lucas");
+        subscribeObserver(pessoa);
     }
 
     private void leiturarList(){
         List<Pessoa> pessoas = new ArrayList<>();
         for(int i=0; i<10;i++){
-            pessoas.add(new Pessoa("Pessoa"+i));
+            pessoas.add(new Pessoa(i,"Pessoa"+i));
         }
-        Observable<List<Pessoa>> observable = Observable.just(pessoas);
-        Observer<List<Pessoa>> observer = definirObserver();
-        observable.subscribe(observer);
+        subscribeObserver(pessoas);
     }
-
 
     private void leituraArray(){
         Pessoa[] pessoas = new Pessoa[10];
         for(int i=0; i<10;i++){
-            pessoas[i]= new Pessoa("Pessoa"+i);
+            pessoas[i]= new Pessoa(i,"Pessoa"+i);
         }
-        Observable<Pessoa> observable = Observable.fromArray(pessoas);
-        Observer<Pessoa> observer = definirObserver();
-        observable.subscribe(observer);
+        subscribeObserverArray(pessoas);
+    }
+
+
+    private <T> void subscribeObserver(T valor){
+        Observable.just(valor)
+                .filter(new Predicate<T>() {//Filtrar os valores
+                    @Override
+                    public boolean test(T t) throws Exception {
+                        return true;
+                    }
+                })
+                .distinct()//Mesma função do SQL, selecionar valores únicos
+                .map(new Function<T, T>() {//Mapeamento dos objetos
+                    @Override
+                    public T apply(T t) throws Exception {
+                        Log.d(TAG, "Map: "+t.toString());
+                        return t;
+                    }
+                })
+                .subscribe(definirObserver());
+    }
+
+    private void subscribeObserverArray(Pessoa[] valor){
+        Observable.fromArray(valor).subscribe(definirObserver());
     }
 }
